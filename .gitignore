@@ -1,2 +1,3 @@
 Client/magic-stream-client/.env
 Server/MagicStreamMoviesServer/.env
+.DS_Store
