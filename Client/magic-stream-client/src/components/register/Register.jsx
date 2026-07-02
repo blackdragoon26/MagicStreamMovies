@@ -4,11 +4,13 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import axiosClient from '../../api/axiosConfig';
 import { useNavigate, Link } from 'react-router-dom';
-import logo from '../../assets/MagicStreamLogo.png';
+import SlixLogo from '../header/SlixLogo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCrown, faUser, faCreditCard, faLock, faRobot, faStar, faChevronLeft, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
+import useAuth from '../../hooks/useAuth';
 
 const Register = () => {
+    const { setAuth } = useAuth();
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
@@ -89,12 +91,62 @@ const Register = () => {
             }
             navigate('/login', { replace: true });
         } catch (err) {
-            setError(err.response?.data?.error || 'Registration failed. Please check details and try again.');
+            setError(err.response?.data?.error || 'Registration failed. Please try again.');
             setShowCheckout(false);
         } finally {
             setLoading(false);
         }
     };
+
+    // Google Sign-In handler for registration (creates standard user instantly)
+    const handleGoogleCredentialResponse = async (response) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await axiosClient.post('/google-login', { credential: response.credential });
+            if (res.data.error) {
+                setError(res.data.error);
+                return;
+            }
+            setAuth(res.data);
+            navigate('/', { replace: true });
+        } catch (err) {
+            console.error("Google registration failed:", err);
+            setError(err.response?.data?.error || "Google authentication failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const isGoogleConfigured = import.meta.env.VITE_GOOGLE_CLIENT_ID && 
+        !import.meta.env.VITE_GOOGLE_CLIENT_ID.includes('mockclientid');
+
+    // Initialize Google Identity Services
+    useEffect(() => {
+        if (!isGoogleConfigured) return;
+
+        const initializeGoogleGSI = () => {
+            if (window.google && window.google.accounts && !showCheckout) {
+                window.google.accounts.id.initialize({
+                    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+                    callback: handleGoogleCredentialResponse,
+                    context: 'signup',
+                    ux_mode: 'popup'
+                });
+                
+                const btnContainer = document.getElementById('google-signup-btn');
+                if (btnContainer) {
+                    window.google.accounts.id.renderButton(
+                        btnContainer,
+                        { theme: 'filled_black', size: 'large', width: 340 }
+                    );
+                }
+            }
+        };
+
+        const timer = setTimeout(initializeGoogleGSI, 500);
+        return () => clearTimeout(timer);
+    }, [showCheckout, isGoogleConfigured]);
 
     useEffect(() => {
         const fetchGenres = async () => {
@@ -109,22 +161,18 @@ const Register = () => {
     }, []);
 
     return (
-        <Container className="d-flex align-items-center justify-content-center min-vh-100 py-5">
-            <div className="glass-card p-4 p-md-5 rounded-4 shadow animate-fade-in" style={{ maxWidth: showCheckout ? 620 : 500, width: '100%' }}>
+        <Container className="d-flex align-items-center justify-content-center min-vh-100 py-5 animate-fade-in">
+            <div className="glass-card p-4 p-md-5 rounded-3 shadow-none" style={{ maxWidth: showCheckout ? 620 : 500, width: '100%', background: 'var(--bg-card)' }}>
                 
                 {!showCheckout ? (
                     <>
-                        <div className="text-center mb-4">
-                            <img 
-                                src={logo} 
-                                alt="Logo" 
-                                width={60} 
-                                className="mb-2" 
-                                style={{ filter: 'drop-shadow(0 0 10px rgba(0, 240, 255, 0.4))' }}
-                            />
-                            <h2 className="fw-bold text-white mb-1" style={{ fontFamily: 'Outfit' }}>Create Account</h2>
-                            <p className="text-muted">Register to start streaming cinema on Magic Stream</p>
-                            {error && <div className="alert alert-danger py-2" style={{ fontSize: '0.9rem' }}>{error}</div>}                
+                        <div className="text-center mb-4 d-flex flex-column align-items-center">
+                            <div className="mb-2">
+                                <SlixLogo size={48} />
+                            </div>
+                            <h3 className="fw-bold text-white mb-1" style={{ fontFamily: 'Outfit' }}>Create Account</h3>
+                            <p className="text-muted small">Register to start streaming cinema on Slix</p>
+                            {error && <div className="alert alert-danger py-2" style={{ fontSize: '0.85rem' }}>{error}</div>}                
                         </div>
 
                         <Form onSubmit={handleInitialSubmit}>
@@ -191,7 +239,7 @@ const Register = () => {
                                             isInvalid={!!confirmPassword && password !== confirmPassword}
                                         />
                                         <Form.Control.Feedback type="invalid">
-                                            Passwords match mismatch.
+                                            Passwords mismatch.
                                         </Form.Control.Feedback>
                                     </Form.Group>
                                 </div>
@@ -202,32 +250,32 @@ const Register = () => {
                                 <Form.Label className="d-block">Account Tier</Form.Label>
                                 <div className="d-flex gap-3 mt-1">
                                     <div 
-                                        className="flex-fill p-3 rounded-3 border text-center cursor-pointer position-relative select-tier-card"
+                                        className="flex-fill p-3 rounded border text-center cursor-pointer position-relative select-tier-card"
                                         style={{ 
-                                            background: role === 'USER' ? 'rgba(0, 240, 255, 0.05)' : 'rgba(255, 255, 255, 0.01)',
-                                            borderColor: role === 'USER' ? 'var(--accent-cyan)' : 'rgba(255, 255, 255, 0.08)',
+                                            background: role === 'USER' ? 'rgba(255, 255, 255, 0.03)' : 'var(--bg-tertiary)',
+                                            borderColor: role === 'USER' ? '#ffffff' : 'var(--border-color)',
                                             cursor: 'pointer',
-                                            transition: 'var(--transition-smooth)'
+                                            transition: 'var(--transition-cinematic)'
                                         }}
                                         onClick={() => setRole('USER')}
                                     >
-                                        <FontAwesomeIcon icon={faUser} className="mb-2 fs-5" style={{ color: role === 'USER' ? 'var(--accent-cyan)' : 'var(--text-muted)' }} />
-                                        <span className="d-block text-white fw-bold" style={{ fontSize: '0.9rem' }}>Standard User</span>
+                                        <FontAwesomeIcon icon={faUser} className="mb-2 fs-5" style={{ color: role === 'USER' ? '#ffffff' : 'var(--text-muted)' }} />
+                                        <span className="d-block text-white fw-bold" style={{ fontSize: '0.85rem' }}>Standard User</span>
                                         <span className="text-muted" style={{ fontSize: '0.75rem' }}>Free • Watch Only</span>
                                     </div>
                                     <div 
-                                        className="flex-fill p-3 rounded-3 border text-center cursor-pointer position-relative select-tier-card"
+                                        className="flex-fill p-3 rounded border text-center cursor-pointer position-relative select-tier-card"
                                         style={{ 
-                                            background: role === 'ADMIN' ? 'rgba(139, 92, 246, 0.05)' : 'rgba(255, 255, 255, 0.01)',
-                                            borderColor: role === 'ADMIN' ? 'var(--accent-purple)' : 'rgba(255, 255, 255, 0.08)',
+                                            background: role === 'ADMIN' ? 'rgba(229, 9, 20, 0.05)' : 'var(--bg-tertiary)',
+                                            borderColor: role === 'ADMIN' ? 'var(--accent-red)' : 'var(--border-color)',
                                             cursor: 'pointer',
-                                            transition: 'var(--transition-smooth)'
+                                            transition: 'var(--transition-cinematic)'
                                         }}
                                         onClick={() => setRole('ADMIN')}
                                     >
-                                        <FontAwesomeIcon icon={faCrown} className="mb-2 fs-5" style={{ color: role === 'ADMIN' ? 'var(--accent-purple)' : 'var(--text-muted)' }} />
-                                        <span className="d-block text-white fw-bold" style={{ fontSize: '0.9rem' }}>Admin Curator</span>
-                                        <span className="text-glow-purple" style={{ fontSize: '0.75rem', color: 'var(--accent-purple)', fontWeight: '600' }}>Premium • AI Reviews</span>
+                                        <FontAwesomeIcon icon={faCrown} className="mb-2 fs-5" style={{ color: role === 'ADMIN' ? 'var(--accent-red)' : 'var(--text-muted)' }} />
+                                        <span className="d-block text-white fw-bold" style={{ fontSize: '0.85rem' }}>Admin Curator</span>
+                                        <span style={{ fontSize: '0.75rem', color: 'var(--accent-red)', fontWeight: '600' }}>Premium • AI Reviews</span>
                                     </div>
                                 </div>
                             </Form.Group>
@@ -253,18 +301,40 @@ const Register = () => {
                             </Form.Group>
 
                             <Button
-                                variant="info"
+                                variant="primary"
                                 type="submit"
-                                className="w-100 py-2.5 mb-2"
+                                className="w-100 py-2.5 mb-3"
                                 disabled={loading}
                                 style={{ fontWeight: 600, letterSpacing: 0.5 }}
                             >
                                 {role === 'ADMIN' ? 'Proceed to Billing Setup' : 'Register Account'}
                             </Button>                        
                         </Form>
-                        <div className="text-center mt-3">
+
+                        {role === 'USER' && (
+                            <>
+                                <div className="d-flex align-items-center my-3 text-muted">
+                                    <hr className="flex-grow-1" style={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+                                    <span className="px-2 small uppercase" style={{ fontSize: '0.65rem', letterSpacing: '1px' }}>Or register with</span>
+                                    <hr className="flex-grow-1" style={{ borderColor: 'rgba(255,255,255,0.08)' }} />
+                                </div>
+
+                                {/* Google Register button */}
+                                <div className="d-flex justify-content-center mb-3">
+                                    {isGoogleConfigured ? (
+                                        <div id="google-signup-btn" className="google-login-btn-container"></div>
+                                    ) : (
+                                        <div className="text-center p-3 rounded" style={{ borderColor: 'rgba(255,255,255,0.06)', border: '1px solid', background: 'var(--bg-tertiary)', fontSize: '0.8rem', color: 'var(--text-secondary)', width: '100%' }}>
+                                            Google Sign-Up is not configured. Set VITE_GOOGLE_CLIENT_ID in client .env to enable.
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
+
+                        <div className="text-center mt-4">
                             <span className="text-muted small">Already have an account? </span>
-                            <Link to="/login" className="fw-semibold text-white small" style={{ textDecoration: 'none', color: 'var(--accent-cyan)' }}>Sign In</Link>
+                            <Link to="/login" className="fw-semibold text-white small" style={{ textDecoration: 'none', borderBottom: '1px solid #e50914' }}>Sign In</Link>
                         </div>
                     </>
                 ) : (
@@ -272,10 +342,10 @@ const Register = () => {
                     <div className="animate-fade-in">
                         {paymentSuccess ? (
                             <div className="text-center py-5 animate-fade-in">
-                                <FontAwesomeIcon icon={faCheckCircle} className="text-success mb-3" style={{ fontSize: '4.5rem', filter: 'drop-shadow(0 0 15px rgba(25, 135, 84, 0.4))' }} />
+                                <FontAwesomeIcon icon={faCheckCircle} className="mb-3" style={{ fontSize: '4.5rem', color: 'var(--accent-red)' }} />
                                 <h3 className="text-white fw-bold">Payment Verified</h3>
                                 <p className="text-muted">LLM Credits added. Provisioning Admin curator permissions...</p>
-                                <div className="spinner-border text-info mt-3" role="status">
+                                <div className="spinner-border text-light mt-3" role="status">
                                     <span className="visually-hidden">Loading...</span>
                                 </div>
                             </div>
@@ -288,21 +358,21 @@ const Register = () => {
 
                                 <div className="row g-4">
                                     {/* Left: Billing Explanation & Package Details */}
-                                    <div className="col-md-6 border-end" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
+                                    <div className="col-md-6 border-end" style={{ borderColor: 'var(--border-color)' }}>
                                         <div className="pe-md-3">
                                             <div className="d-flex align-items-center gap-2 mb-2">
-                                                <FontAwesomeIcon icon={faCrown} style={{ color: 'var(--accent-purple)' }} />
+                                                <FontAwesomeIcon icon={faCrown} style={{ color: 'var(--accent-red)' }} />
                                                 <span className="fw-bold text-white small" style={{ letterSpacing: '1px' }}>CURATOR TIERS</span>
                                             </div>
                                             <h4 className="text-white fw-bold mb-3" style={{ fontFamily: 'Outfit' }}>Admin Premium Checkout</h4>
                                             
                                             <div 
-                                                className="p-3 rounded-3 mb-3"
-                                                style={{ background: 'rgba(139, 92, 246, 0.05)', border: '1px solid rgba(139, 92, 246, 0.15)' }}
+                                                className="p-3 rounded mb-3"
+                                                style={{ background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}
                                             >
                                                 <div className="d-flex align-items-center justify-content-between mb-1">
                                                     <span className="text-white fw-bold small">Curator LLM Bundle</span>
-                                                    <span className="badge bg-purple" style={{ background: 'var(--accent-purple)', color: '#fff', fontSize: '0.75rem' }}>$14.99 One-time</span>
+                                                    <span className="badge bg-danger" style={{ background: 'var(--accent-red)', color: '#fff', fontSize: '0.75rem' }}>$14.99 One-time</span>
                                                 </div>
                                                 <span className="text-muted d-block" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
                                                     Includes 1,000 automated sentiment analysis token requests.
@@ -311,13 +381,13 @@ const Register = () => {
 
                                             <div className="d-flex flex-column gap-3 fs-6">
                                                 <div className="d-flex gap-2">
-                                                    <FontAwesomeIcon icon={faRobot} className="mt-1" style={{ color: 'var(--accent-cyan)' }} />
+                                                    <FontAwesomeIcon icon={faRobot} className="mt-1" style={{ color: 'var(--text-secondary)' }} />
                                                     <span className="small text-muted" style={{ lineHeight: '1.4' }}>
                                                         <strong className="text-white">Azure OpenAI Inferencing:</strong> Becoming an Admin grants review modification powers which query Azure OpenAI API. Credits cover API usage fees.
                                                     </span>
                                                 </div>
                                                 <div className="d-flex gap-2">
-                                                    <FontAwesomeIcon icon={faStar} className="mt-1" style={{ color: 'var(--accent-cyan)' }} />
+                                                    <FontAwesomeIcon icon={faStar} className="mt-1" style={{ color: 'var(--text-secondary)' }} />
                                                     <span className="small text-muted" style={{ lineHeight: '1.4' }}>
                                                         <strong className="text-white">Sentiment Classification:</strong> Model automatically formats, evaluates tone, and updates movie ranking weights in real-time.
                                                     </span>
@@ -330,7 +400,7 @@ const Register = () => {
                                     <div className="col-md-6">
                                         <div className="ps-md-2">
                                             <h5 className="text-white fw-semibold mb-3">
-                                                <FontAwesomeIcon icon={faCreditCard} className="me-2" style={{ color: 'var(--accent-cyan)' }} />
+                                                <FontAwesomeIcon icon={faCreditCard} className="me-2" style={{ color: 'var(--text-secondary)' }} />
                                                 Card Details
                                             </h5>
                                             <Form onSubmit={handlePaymentSubmit}>
@@ -396,7 +466,7 @@ const Register = () => {
                                                     type="submit"
                                                     className="w-100 py-2.5 d-flex align-items-center justify-content-center gap-2"
                                                     disabled={checkoutLoading}
-                                                    style={{ background: 'linear-gradient(135deg, var(--accent-purple), #7c3aed)' }}
+                                                    style={{ background: 'var(--accent-red)', border: 'none' }}
                                                 >
                                                     {checkoutLoading ? (
                                                         <>

@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import { useEffect, useMemo } from 'react';
 import axios from 'axios';
 
 import useAuth from './useAuth';
@@ -7,10 +7,10 @@ const apiUrl = import.meta.env.VITE_API_BASE_URL;
 
 const useAxiosPrivate = () =>{
 
-    const axiosAuth = axios.create({
+    const axiosAuth = useMemo(() => axios.create({
         baseURL: apiUrl,
         withCredentials: true, // important for HTTP-only cookies
-    });
+    }), []);
 
 
     const {auth,setAuth} = useAuth();
@@ -31,62 +31,84 @@ const useAxiosPrivate = () =>{
         failedQueue = [];
     };
 
-     useEffect(() => {
-
-        axiosAuth.interceptors.response.use(
-        response => response,
-        async error => {
-            console.log('⚠ Interceptor caught error:', error);
-            const originalRequest = error.config;
-
-        if (originalRequest.url.includes('/refresh') && error.response.status === 401) {
-            //edge case where the refresh token is invalid or expired
-            console.error('❌ Refresh token has expired or is invalid.');
-            return Promise.reject(error); // fail directly, no retry
-        }
-
-            if (error.response && error.response.status === 401 && !originalRequest._retry) {
-
-                if (isRefreshing) {
-                return new Promise((resolve, reject) => {
-                failedQueue.push({ resolve, reject });
-                })
-                .then(() => axiosAuth(originalRequest))
-                .catch(err => Promise.reject(err));
-            }
-
-            originalRequest._retry = true;
-            isRefreshing = true;
-
-            return new Promise((resolve, reject) => {
-                axiosAuth
-                .post('/refresh')
-                .then(() => {
-                
-                    processQueue(null);
-
-                axiosAuth(originalRequest)
-                    .then(resolve)
-                    .catch(reject);
-
-                })
-                .catch(refreshError => {
-
-                        processQueue(refreshError, null);
-                        
-                        localStorage.removeItem('user');
-                        setAuth(null); // Clear auth state
-                        reject(refreshError); // fail the original promise chain
-                })
-                .finally(() => {
-                        isRefreshing = false;
-                });
-            });
-            }
-
-            return Promise.reject(error);
-        }
+    useEffect(() => {
+        // Request interceptor: Inject Bearer Access Token
+        const requestIntercept = axiosAuth.interceptors.request.use(
+            config => {
+                if (!config.headers['Authorization'] && auth?.token) {
+                    config.headers['Authorization'] = `Bearer ${auth.token}`;
+                }
+                return config;
+            },
+            error => Promise.reject(error)
         );
+
+        // Response interceptor: Handle 401 Unauthorized errors and refresh tokens
+        const responseIntercept = axiosAuth.interceptors.response.use(
+            response => response,
+            async error => {
+                console.log('⚠ Interceptor caught error:', error);
+                const originalRequest = error.config;
+
+                if (originalRequest.url.includes('/refresh') && error.response?.status === 401) {
+                    console.error('❌ Refresh token has expired or is invalid.');
+                    return Promise.reject(error);
+                }
+
+                if (error.response && error.response.status === 401 && !originalRequest._retry) {
+                    if (isRefreshing) {
+                        return new Promise((resolve, reject) => {
+                            failedQueue.push({ resolve, reject });
+                        })
+                        .then(() => axiosAuth(originalRequest))
+                        .catch(err => Promise.reject(err));
+                    }
+
+                    originalRequest._retry = true;
+                    isRefreshing = true;
+
+                    return new Promise((resolve, reject) => {
+                        axiosAuth
+                            .post('/refresh')
+                            .then((res) => {
+                                const newToken = res.data?.token;
+                                const newRefreshToken = res.data?.refresh_token;
+                                
+                                if (newToken) {
+                                    const updatedAuth = { ...auth, token: newToken };
+                                    if (newRefreshToken) {
+                                        updatedAuth.refresh_token = newRefreshToken;
+                                    }
+                                    setAuth(updatedAuth);
+                                    originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+                                }
+                                
+                                processQueue(null);
+
+                                axiosAuth(originalRequest)
+                                    .then(resolve)
+                                    .catch(reject);
+                            })
+                            .catch(refreshError => {
+                                processQueue(refreshError, null);
+                                localStorage.removeItem('user');
+                                setAuth(null);
+                                reject(refreshError);
+                            })
+                            .finally(() => {
+                                isRefreshing = false;
+                            });
+                    });
+                }
+
+                return Promise.reject(error);
+            }
+        );
+
+        return () => {
+            axiosAuth.interceptors.request.eject(requestIntercept);
+            axiosAuth.interceptors.response.eject(responseIntercept);
+        };
 
     }, [auth]);
 

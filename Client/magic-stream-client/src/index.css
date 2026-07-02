@@ -1,24 +1,20 @@
-/* Main design system - Dark Cinematic Neon Theme */
+/* Cinematic Motion Template - Flat Matte Black Aesthetic */
 :root {
-  --bg-primary: #07070a;
-  --bg-secondary: #0d0d14;
-  --bg-tertiary: #13131f;
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --bg-card-hover: rgba(255, 255, 255, 0.06);
-  --border-color: rgba(255, 255, 255, 0.08);
+  --bg-primary: #030304;
+  --bg-secondary: #08080c;
+  --bg-tertiary: #0e0e12;
+  --bg-card: #09090c;
+  --bg-card-hover: #101015;
+  --border-color: #121217;
   
-  --accent-cyan: #00f0ff;
-  --accent-purple: #8b5cf6;
-  --accent-rose: #f43f5e;
+  --accent-red: #e50914; /* Netflix red */
+  --accent-grey: #26262b;
   
-  --text-primary: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
+  --text-primary: #ffffff;
+  --text-secondary: #8c8c9a;
+  --text-muted: #52525c;
   
-  --shadow-glow: 0 0 20px rgba(0, 240, 255, 0.15);
-  --shadow-glow-purple: 0 0 20px rgba(139, 92, 246, 0.15);
-  
-  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-cinematic: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
@@ -26,168 +22,175 @@ body {
   color: var(--text-primary) !important;
   font-family: 'Outfit', 'Inter', sans-serif;
   overflow-x: hidden;
+  margin: 0;
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: var(--bg-primary);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--bg-tertiary);
-  border-radius: 4px;
+  background: var(--accent-grey);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
 
-/* Glassmorphism & Cards */
+/* Matte Flat Card System */
 .glass-card {
   background: var(--bg-card) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color) !important;
-  border-radius: 16px !important;
-  transition: var(--transition-smooth);
+  border-radius: 12px !important;
+  transition: var(--transition-cinematic);
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .glass-card:hover {
   background: var(--bg-card-hover) !important;
-  border-color: rgba(0, 240, 255, 0.25) !important;
-  box-shadow: var(--shadow-glow);
+  border-color: var(--text-muted) !important;
+  transform: translateY(-2px);
 }
 
-/* Glow Typography */
-.text-glow {
-  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
-}
-.text-glow-purple {
-  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
-}
-
-/* Gradient text */
+/* Header links and text styling */
 .text-gradient {
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #fff !important;
+  font-weight: 800;
+  letter-spacing: -0.5px;
 }
 
-/* Bootstrap Button Overrides */
+/* Cinematic text animations & tracks */
+.text-glow, .text-glow-purple {
+  text-shadow: none !important;
+}
+
+/* Flat Premium Buttons */
 .btn-info {
-  background: linear-gradient(135deg, var(--accent-cyan), #00d0e6) !important;
-  border: none !important;
-  color: #07070a !important;
+  background: #ffffff !important;
+  border: 1px solid #ffffff !important;
+  color: #030304 !important;
   font-weight: 600 !important;
-  border-radius: 8px !important;
-  padding: 8px 20px !important;
-  box-shadow: 0 4px 12px rgba(0, 240, 255, 0.25) !important;
-  transition: var(--transition-smooth) !important;
+  border-radius: 4px !important;
+  padding: 8px 24px !important;
+  box-shadow: none !important;
+  transition: var(--transition-cinematic) !important;
 }
 
 .btn-info:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4) !important;
-  filter: brightness(1.1);
+  background: #e6e6e6 !important;
+  border-color: #e6e6e6 !important;
+  transform: scale(1.02);
 }
 
 .btn-outline-info {
-  border: 1.5px solid var(--accent-cyan) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   background: transparent !important;
-  color: var(--accent-cyan) !important;
+  color: #ffffff !important;
   font-weight: 500 !important;
-  border-radius: 8px !important;
-  padding: 8px 20px !important;
-  transition: var(--transition-smooth) !important;
+  border-radius: 4px !important;
+  padding: 8px 24px !important;
+  transition: var(--transition-cinematic) !important;
 }
 
 .btn-outline-info:hover {
-  background: rgba(0, 240, 255, 0.1) !important;
-  color: #fff !important;
-  box-shadow: var(--shadow-glow);
-  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: #ffffff !important;
 }
 
 .btn-outline-light {
-  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
-  border-radius: 8px !important;
-  transition: var(--transition-smooth) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 4px !important;
+  transition: var(--transition-cinematic) !important;
 }
 
 .btn-outline-light:hover {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border-color: #fff !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: #ffffff !important;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-purple), #7c3aed) !important;
-  border: none !important;
+  background: var(--accent-red) !important;
+  border: 1px solid var(--accent-red) !important;
   font-weight: 600 !important;
-  border-radius: 8px !important;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25) !important;
-  transition: var(--transition-smooth) !important;
+  border-radius: 4px !important;
+  box-shadow: none !important;
+  transition: var(--transition-cinematic) !important;
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
+  background: #ff1a26 !important;
+  border-color: #ff1a26 !important;
 }
 
 /* Custom form styles */
 .form-control, .form-select {
-  background-color: rgba(255, 255, 255, 0.02) !important;
+  background-color: var(--bg-tertiary) !important;
   border: 1px solid var(--border-color) !important;
   color: var(--text-primary) !important;
-  border-radius: 8px !important;
-  padding: 10px 14px !important;
-  transition: var(--transition-smooth) !important;
+  border-radius: 4px !important;
+  padding: 12px 16px;
+  transition: var(--transition-cinematic) !important;
 }
 
 .form-control:focus, .form-select:focus {
-  background-color: rgba(255, 255, 255, 0.04) !important;
-  border-color: var(--accent-cyan) !important;
-  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15) !important;
+  border-color: var(--text-secondary) !important;
+  box-shadow: none !important;
   color: var(--text-primary) !important;
 }
 
 .form-label {
   color: var(--text-secondary) !important;
   font-weight: 500 !important;
-  margin-bottom: 6px !important;
+  margin-bottom: 8px !important;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-/* Custom badges */
+/* Badges */
 .badge.bg-dark {
   background-color: var(--bg-tertiary) !important;
   border: 1px solid var(--border-color);
-  color: var(--accent-cyan) !important;
-  border-radius: 6px;
+  color: #fff !important;
+  border-radius: 4px;
   font-weight: 500;
 }
 
-/* Utility Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+/* Cinematic motion layout elements */
+.cinema-banner-track {
+  width: 100%;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.cinema-banner-progress {
+  height: 100%;
+  background-color: var(--accent-red);
+  width: 0%;
+  transition: width 0.1s linear;
+}
+
+/* Cinematic Transitions */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s ease forwards;
+  animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Custom select options for multi-select */
-select[multiple] option {
-  padding: 8px;
-  border-radius: 4px;
-  margin-bottom: 2px;
-  background-color: var(--bg-secondary);
-  color: var(--text-primary);
-}
-
-select[multiple] option:checked {
-  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(139, 92, 246, 0.2)) !important;
-  color: var(--accent-cyan);
+/* Google Sign In Wrapper */
+.google-login-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+  margin-bottom: 15px;
 }

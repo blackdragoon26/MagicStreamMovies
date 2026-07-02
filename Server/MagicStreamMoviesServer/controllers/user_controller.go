@@ -2,8 +2,12 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/blackdragoon26/MagicStreamMovies/Server/MagicStreamMoviesServer/database"
@@ -35,6 +39,8 @@ func RegisterUser(client *mongo.Client) gin.HandlerFunc {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input data"})
 			return
 		}
+
+		user.Email = strings.ToLower(strings.TrimSpace(user.Email))
 
 		validate := validator.New()
 		if err := validate.Struct(user); err != nil {
@@ -84,10 +90,11 @@ func LoginUser(client *mongo.Client) gin.HandlerFunc {
 		var userLogin models.UserLogin
 
 		if err := c.ShouldBindJSON(&userLogin); err != nil {
-
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input data"})
 			return
 		}
+
+		userLogin.Email = strings.ToLower(strings.TrimSpace(userLogin.Email))
 
 		var foundUser models.User
 		var userCollection *mongo.Collection = database.OpenCollection("users", client)
@@ -116,6 +123,9 @@ func LoginUser(client *mongo.Client) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "unable to update token"})
 			return
 		}
+
+		c.SetCookie("access_token", token, 86400, "/", "localhost", true, true)
+		c.SetCookie("refresh_token", refreshToken, 604800, "/", "localhost", true, true)
 
 		c.JSON(http.StatusOK, models.UserResponse{
 			UserID:          foundUser.UserID,
@@ -219,7 +229,192 @@ func RefreshTokenHandler(client *mongo.Client)gin.HandlerFunc{
 		c.SetCookie("access_token", newToken, 86400, "/", "localhost", true, true)          // expires in 24 hours
 		c.SetCookie("refresh_token", newRefreshToken, 604800, "/", "localhost", true, true) //expires in 1 week
 
-		c.JSON(http.StatusOK, gin.H{"message": "Tokens refreshed"})
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Tokens refreshed",
+			"token": newToken,
+			"refresh_token": newRefreshToken,
+		})
 
+	}
+}
+
+type GoogleTokenInfo struct {
+	Issuer        string `json:"iss"`
+	Subject       string `json:"sub"`
+	Audience      string `json:"aud"`
+	Email         string `json:"email"`
+	EmailVerified string `json:"email_verified"`
+	Name          string `json:"name"`
+	Picture       string `json:"picture"`
+	GivenName     string `json:"given_name"`
+	FamilyName    string `json:"family_name"`
+	Expires       string `json:"exp"`
+	Error         string `json:"error"`
+}
+
+func VerifyGoogleIDToken(token string) (*GoogleTokenInfo, error) {
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get(fmt.Sprintf("https://oauth2.googleapis.com/tokeninfo?id_token=%s", token))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("google tokeninfo returned status %d", resp.StatusCode)
+	}
+
+	var info GoogleTokenInfo
+	if err := json.NewDecoder(resp.Body).Decode(&info); err != nil {
+		return nil, err
+	}
+
+	if info.Error != "" {
+		return nil, fmt.Errorf("google tokeninfo error: %s", info.Error)
+	}
+
+	if info.EmailVerified != "true" {
+		return nil, errors.New("google email is not verified")
+	}
+
+	// Verify audience matches GOOGLE_CLIENT_ID
+	expectedClientID := os.Getenv("GOOGLE_CLIENT_ID")
+	if expectedClientID != "" && info.Audience != expectedClientID {
+		return nil, errors.New("google token audience mismatch")
+	}
+
+	return &info, nil
+}
+
+func GoogleLoginUser(client *mongo.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req struct {
+			Credential string `json:"credential"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+			return
+		}
+
+		if req.Credential == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Google credential token is required"})
+			return
+		}
+
+		googleInfo, err := VerifyGoogleIDToken(req.Credential)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to verify Google token", "details": err.Error()})
+			return
+		}
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var userCollection *mongo.Collection = database.OpenCollection("users", client)
+		var foundUser models.User
+
+		// Check if user exists by email
+		err = userCollection.FindOne(ctx, bson.M{"email": googleInfo.Email}).Decode(&foundUser)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				// User does not exist, auto-register them!
+				newUser := models.User{
+					UserID:          bson.NewObjectID().Hex(),
+					FirstName:       googleInfo.GivenName,
+					LastName:        googleInfo.FamilyName,
+					Email:           googleInfo.Email,
+					Password:        "", // No password for OAuth users
+					Role:            "USER", // Default role
+					CreatedAt:       time.Now(),
+					UpdatedAt:       time.Now(),
+					FavouriteGenres: []models.Genre{}, // empty list
+				}
+
+				if newUser.FirstName == "" {
+					newUser.FirstName = "Google"
+				}
+				if newUser.LastName == "" {
+					newUser.LastName = "User"
+				}
+
+				_, insertErr := userCollection.InsertOne(ctx, newUser)
+				if insertErr != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user account"})
+					return
+				}
+				foundUser = newUser
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to check user account"})
+				return
+			}
+		}
+
+		// Generate login session tokens
+		token, refreshToken, err := utils.GenerateAllTokens(foundUser.Email, foundUser.FirstName, foundUser.LastName, foundUser.Role, foundUser.UserID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate tokens"})
+			return
+		}
+
+		err = utils.UpdateAllTokens(foundUser.UserID, token, refreshToken, client)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update tokens"})
+			return
+		}
+
+		c.SetCookie("access_token", token, 86400, "/", "localhost", true, true)
+		c.SetCookie("refresh_token", refreshToken, 604800, "/", "localhost", true, true)
+
+		c.JSON(http.StatusOK, models.UserResponse{
+			UserID:          foundUser.UserID,
+			FirstName:       foundUser.FirstName,
+			LastName:        foundUser.LastName,
+			Email:           foundUser.Email,
+			Role:            foundUser.Role,
+			Token:           token,
+			RefreshToken:    refreshToken,
+			FavouriteGenres: foundUser.FavouriteGenres,
+		})
+	}
+}
+
+func UpdateUserGenres(client *mongo.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userId, err := utils.GetUserIdFromContext(c)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user ID not found in context"})
+			return
+		}
+
+		var req struct {
+			FavouriteGenres []models.Genre `json:"favourite_genres" validate:"required,dive"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid input data"})
+			return
+		}
+
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
+		defer cancel()
+
+		var userCollection *mongo.Collection = database.OpenCollection("users", client)
+
+		update := bson.M{
+			"$set": bson.M{
+				"favourite_genres": req.FavouriteGenres,
+				"updated_at":       time.Now(),
+			},
+		}
+
+		filter := bson.M{"user_id": userId}
+		_, err = userCollection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update user genres"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Genres updated successfully"})
 	}
 }

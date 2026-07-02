@@ -9,6 +9,7 @@ import (
 	"github.com/blackdragoon26/MagicStreamMovies/Server/MagicStreamMoviesServer/database"
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 )
@@ -22,8 +23,41 @@ type SignedDetails struct{
 	jwt.RegisteredClaims //rfc5719
 }
 
-var SECRET_KEY string=os.Getenv("SECRET_KEY")
-var SECRET_REFRESH_KEY string=os.Getenv("SECRET_REFRESH_KEY")
+func loadEnv() {
+	if os.Getenv("SECRET_KEY") != "" {
+		return
+	}
+	if err := godotenv.Load(".env"); err == nil {
+		return
+	}
+	if err := godotenv.Load("Server/MagicStreamMoviesServer/.env"); err == nil {
+		return
+	}
+	if err := godotenv.Load("../.env"); err == nil {
+		return
+	}
+	if err := godotenv.Load("../../.env"); err == nil {
+		return
+	}
+}
+
+func getSecretKey() string {
+	loadEnv()
+	val := os.Getenv("SECRET_KEY")
+	if val == "" {
+		return "default_secret_key"
+	}
+	return val
+}
+
+func getSecretRefreshKey() string {
+	loadEnv()
+	val := os.Getenv("SECRET_REFRESH_KEY")
+	if val == "" {
+		return "default_refresh_secret_key"
+	}
+	return val
+}
 
 //creates access and refresh token
 func GenerateAllTokens(email, firstName, lastName, role, userId string)(string , string, error){
@@ -40,7 +74,7 @@ func GenerateAllTokens(email, firstName, lastName, role, userId string)(string ,
 		},
 	}
 	token:=jwt.NewWithClaims(jwt.SigningMethodHS256,claims)
-	signedToken,err:=token.SignedString([]byte(SECRET_KEY))
+	signedToken,err:=token.SignedString([]byte(getSecretKey()))
 	if err!=nil{
 		return "","",nil
 	}
@@ -60,7 +94,7 @@ func GenerateAllTokens(email, firstName, lastName, role, userId string)(string ,
 		},
 	}
 	refreshToken:=jwt.NewWithClaims(jwt.SigningMethodHS256,refreshClaims)
-	signedrefreshToken,err:=refreshToken.SignedString([]byte(SECRET_REFRESH_KEY))
+	signedrefreshToken,err:=refreshToken.SignedString([]byte(getSecretRefreshKey()))
 	if err!=nil{
 		return "","",err
 	}
@@ -110,7 +144,7 @@ func ValidateToken(tokenString string)(*SignedDetails, error){
 	claims:=&SignedDetails{}
 
 	token,err:=jwt.ParseWithClaims(tokenString,claims,func(token *jwt.Token)(interface{},error){
-		return []byte(SECRET_KEY),nil
+		return []byte(getSecretKey()),nil
 	})
 
 	if err!=nil{
@@ -159,7 +193,7 @@ func ValidateRefreshToken(tokenString string)(*SignedDetails,error){
 	claims := &SignedDetails{}
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 
-		return []byte(SECRET_REFRESH_KEY), nil
+		return []byte(getSecretRefreshKey()), nil
 	})
 
 	if err != nil {

@@ -11,6 +11,7 @@ import RequiredAuth from './components/RequiredAuth';
 import axiosClient from './api/axiosConfig';
 import useAuth from './hooks/useAuth';
 import StreamMovie from './components/stream/StreamMovie';
+import AddMovie from './components/addmovie/AddMovie';
 
 import {Route, Routes, useNavigate} from 'react-router-dom'
 
@@ -50,9 +51,33 @@ function App() {
             <Route path="/recommended" element={<Recommended/>}></Route>
             <Route path="/review/:imdb_id" element={<Review/>}></Route>
             <Route path="/stream/:imdb_id" element={<StreamMovie/>}></Route>
+            <Route path="/add-movie" element={<AddMovie/>}></Route>
         </Route>
       </Routes>
 
+      <footer 
+        style={{
+          background: '#030304',
+          borderTop: '1px solid #121217',
+          padding: '24px 0',
+          textAlign: 'center',
+          color: '#52525c',
+          fontSize: '0.85rem',
+          letterSpacing: '0.5px'
+        }}
+      >
+        <div className="container">
+          <span>Made by </span>
+          <a 
+            href="https://sankalpjha.dev/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            style={{ color: '#fff', textDecoration: 'none', borderBottom: '1px solid #e50914', paddingBottom: '2px', fontWeight: '600' }}
+          >
+            Sankalp Jha
+          </a>
+        </div>
+      </footer>
     </>
   )
 }

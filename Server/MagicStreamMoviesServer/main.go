@@ -79,7 +79,11 @@ func main(){
 
 
 
-	if err:=router.Run(":8080");err!=nil{ //run starts a goroutine for a each request and runs server
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err:=router.Run(":" + port);err!=nil{ //run starts a goroutine for a each request and runs server
 		fmt.Println("failed: ",err)
 	}
 

@@ -1,0 +1,63 @@
+import React from 'react';
+
+const SlixLogo = ({ size = 30 }) => {
+    return (
+        <svg 
+            width={size} 
+            height={size} 
+            viewBox="0 0 100 100" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ filter: 'drop-shadow(0 2px 6px rgba(229, 9, 20, 0.4))' }}
+        >
+            {/* Top Bar Fold 1 (Main Face) */}
+            <polygon 
+                points="30,12 76,12 62,26 24,26" 
+                fill="#ff3b3f" 
+            />
+            {/* Top Bar Fold 2 (Inner Ribbon) */}
+            <polygon 
+                points="76,12 76,32 62,40 62,26" 
+                fill="#d32f2f" 
+            />
+            {/* Top Bar Fold 3 (Origami crease) */}
+            <polygon 
+                points="24,26 62,26 50,34 20,34" 
+                fill="#b71c1c" 
+            />
+
+            {/* Diagonal Ribbon Body (Underlay Folds) */}
+            <polygon 
+                points="76,32 24,68 24,56 62,40" 
+                fill="#f44336" 
+            />
+            <polygon 
+                points="76,42 24,78 24,68 62,50" 
+                fill="#c62828" 
+            />
+            <polygon 
+                points="62,40 62,50 24,68 24,56" 
+                fill="#ffebee" 
+                fillOpacity="0.08"
+            />
+
+            {/* Bottom Bar Fold 1 (Main Face) */}
+            <polygon 
+                points="24,88 70,88 76,74 38,74" 
+                fill="#e53935" 
+            />
+            {/* Bottom Bar Fold 2 (Inner Crease) */}
+            <polygon 
+                points="38,74 76,74 76,54 62,50" 
+                fill="#ff5252" 
+            />
+            {/* Bottom Bar Fold 3 (Bottom Crease Shadow) */}
+            <polygon 
+                points="24,88 38,74 24,74" 
+                fill="#b71c1c" 
+            />
+        </svg>
+    );
+};
+
+export default SlixLogo;

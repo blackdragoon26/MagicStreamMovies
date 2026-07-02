@@ -11,6 +11,7 @@ import { faPenNib, faCommentDots, faRobot, faShieldHalved, faStar } from '@forta
 const Review = () => {
     const [movie, setMovie] = useState({});
     const [loading, setLoading] = useState(false);
+    const [successMsg, setSuccessMsg] = useState(null);
     const revText = useRef();
     const { imdb_id } = useParams();
     const { auth } = useAuth();
@@ -35,6 +36,7 @@ const Review = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setSuccessMsg(null);
         try {
             const response = await axiosPrivate.patch(`/updatereview/${imdb_id}`, { admin_review: revText.current.value });
             
@@ -46,6 +48,11 @@ const Review = () => {
                     ranking_value: response.data?.ranking_value ?? movie.ranking?.ranking_value
                 }
             }));
+
+            const rankName = response.data?.ranking.ranking_name || response.data?.ranking_name || "Unknown";
+            const rankVal = response.data?.ranking.ranking_value || response.data?.ranking_value || 0;
+            setSuccessMsg(`Review analyzed. Sentiment rating updated to ${rankName} (${rankVal}/10).`);
+            setTimeout(() => setSuccessMsg(null), 8000);
         } catch (err) {
             console.error('Error updating review:', err);
         } finally {
@@ -115,6 +122,24 @@ const Review = () => {
                                 {auth && auth.role === "ADMIN" ? (
                                     <Form onSubmit={handleSubmit} className="d-flex flex-column h-100 justify-content-between">
                                         <div>
+                                            {successMsg && (
+                                                <div 
+                                                    className="p-3 mb-4 rounded d-flex align-items-center gap-3 animate-fade-in" 
+                                                    style={{ 
+                                                        background: 'rgba(16, 185, 129, 0.05)', 
+                                                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                                                        color: '#10b981'
+                                                    }}
+                                                >
+                                                    <FontAwesomeIcon icon={faRobot} className="text-glow" style={{ color: '#10b981', fontSize: '1.2rem' }} />
+                                                    <div>
+                                                        <span className="d-block fw-bold" style={{ fontSize: '0.85rem' }}>Azure OpenAI NLP Success</span>
+                                                        <span className="text-muted d-block mt-0.5" style={{ fontSize: '0.8rem' }}>
+                                                            {successMsg}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <Form.Group className="mb-4" controlId="adminReviewTextarea">
                                                 <Form.Label className="fs-5 text-white fw-semibold mb-2">
                                                     Curator Notes & Analysis

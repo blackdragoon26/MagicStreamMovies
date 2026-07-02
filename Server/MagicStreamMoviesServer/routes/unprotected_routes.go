@@ -13,7 +13,6 @@ func SetupUnProtectedRoutes(router *gin.Engine, client *mongo.Client){
 	router.POST("/logout",controller.LogoutHandler(client))
 	router.GET("/genres",controller.GetGenres(client))
 	router.POST("/refresh",controller.RefreshTokenHandler(client))
-
-
+	router.POST("/google-login",controller.GoogleLoginUser(client))
 
 }
