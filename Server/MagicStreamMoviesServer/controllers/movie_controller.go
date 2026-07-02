@@ -411,3 +411,46 @@ func GetGenres(client *mongo.Client)gin.HandlerFunc{
 
 	}
 }
+
+func UpdateMovieStreamURL(client *mongo.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		movieID := c.Param("imdb_id")
+		if movieID == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Movie ID required"})
+			return
+		}
+
+		var req struct {
+			StreamURL string `json:"stream_url"`
+		}
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request payload"})
+			return
+		}
+
+		filter := bson.M{"imdb_id": movieID}
+		update := bson.M{
+			"$set": bson.M{
+				"stream_url": req.StreamURL,
+			},
+		}
+
+		ctx, cancel := context.WithTimeout(c, 10*time.Second)
+		defer cancel()
+
+		var movieCollection *mongo.Collection = database.OpenCollection("movies", client)
+		result, err := movieCollection.UpdateOne(ctx, filter, update)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating stream URL"})
+			return
+		}
+
+		if result.MatchedCount == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Movie not found"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Stream URL updated successfully", "stream_url": req.StreamURL})
+	}
+}

@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import Container from 'react-bootstrap/Container';
 import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
@@ -9,7 +9,7 @@ import logo from '../../assets/MagicStreamLogo.png';
 
 const Login = () => {
     
-    const {setAuth} = useAuth();
+    const { setAuth } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
@@ -27,19 +27,12 @@ const Login = () => {
 
         try {
             const response = await axiosClient.post('/login', { email, password });
-            console.log(response.data);
             if (response.data.error) {
                 setError(response.data.error);
                 return;
             }
-           // console.log(response.data);
             setAuth(response.data);
-            
-           // localStorage.setItem('user', JSON.stringify(response.data));
-            // Handle successful login (e.g., store token, redirect)
-           navigate(from, {replace: true});
-           //navigate('/');
-
+            navigate(from, { replace: true });
         } catch (err) {
             console.error(err);
             setError('Invalid email or password');
@@ -48,20 +41,26 @@ const Login = () => {
         }
     }; 
     return (
-        <Container className="login-container d-flex align-items-center justify-content-center min-vh-100">
-            <div className="login-card shadow p-4 rounded bg-white" style={{maxWidth: 400, width: '100%'}}>
+        <Container className="d-flex align-items-center justify-content-center min-vh-100 py-5">
+            <div className="glass-card p-4 p-md-5 rounded-4 shadow animate-fade-in" style={{ maxWidth: 420, width: '100%' }}>
                 <div className="text-center mb-4">
-                    <img src={logo} alt="Logo" width={60} className="mb-2" />
-                    <h2 className="fw-bold">Sign In</h2>
-                    <p className="text-muted">Welcome back! Please login to your account.</p>
+                    <img 
+                        src={logo} 
+                        alt="Logo" 
+                        width={60} 
+                        className="mb-2" 
+                        style={{ filter: 'drop-shadow(0 0 10px rgba(0, 240, 255, 0.4))' }} 
+                    />
+                    <h2 className="fw-bold text-white mb-1" style={{ fontFamily: 'Outfit' }}>Welcome Back</h2>
+                    <p className="text-muted">Sign in to resume cinema streaming</p>
                 </div>
-                {error && <div className="alert alert-danger py-2">{error}</div>}
+                {error && <div className="alert alert-danger py-2" style={{ fontSize: '0.9rem' }}>{error}</div>}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group controlId="formBasicEmail" className="mb-3">
-                        <Form.Label>Email address</Form.Label>
+                        <Form.Label>Email Address</Form.Label>
                         <Form.Control
                             type="email"
-                            placeholder="Enter email"
+                            placeholder="john@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
@@ -69,11 +68,11 @@ const Login = () => {
                         />
                     </Form.Group>
 
-                    <Form.Group controlId="formBasicPassword" className="mb-3">
+                    <Form.Group controlId="formBasicPassword" className="mb-4">
                         <Form.Label>Password</Form.Label>
                         <Form.Control
                             type="password"
-                            placeholder="Password"
+                            placeholder="••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
@@ -81,23 +80,23 @@ const Login = () => {
                     </Form.Group>
 
                     <Button
-                        variant="primary"
+                        variant="info"
                         type="submit"
-                        className="w-100 mb-2"
+                        className="w-100 py-2.5 mb-2"
                         disabled={loading}
-                        style={{fontWeight: 600, letterSpacing: 1}}
+                        style={{ fontWeight: 600, letterSpacing: 0.5 }}
                     >
                         {loading ? (
                             <>
                                 <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                                Logging in...
+                                Authenticating...
                             </>
-                        ) : 'Login'}
+                        ) : 'Sign In'}
                     </Button>
                 </Form>
                 <div className="text-center mt-3">
-                    <span className="text-muted">Don't have an account? </span>
-                    <Link to="/register" className="fw-semibold">Register here</Link>
+                    <span className="text-muted small">Don't have an account? </span>
+                    <Link to="/register" className="fw-semibold text-white small" style={{ textDecoration: 'none', color: 'var(--accent-cyan)' }}>Register here</Link>
                 </div>
             </div>
         </Container>

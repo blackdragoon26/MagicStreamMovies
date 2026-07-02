@@ -8,6 +8,7 @@ type Movie struct{
 	Title string	`bson:"title" json:"title" validate:"required,min=2,max=500"`
 	PosterPath string	`bson:"poster_path" json:"poster_path" validate:"required,url"`
 	YouTubeID string	`bson:"youtube_id" json:"youtube_id" validate:"required"`
+	StreamURL string	`bson:"stream_url" json:"stream_url"`
 	Genre []Genre	`bson:"genre" json:"genre" validate:"required,dive"`
 	AdminReview string	`bson:"admin_review" json:"admin_review"`
 	Ranking Ranking	`bson:"ranking" json:"ranking" validate:"required"`

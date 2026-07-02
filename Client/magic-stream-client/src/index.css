@@ -1,0 +1,193 @@
+/* Main design system - Dark Cinematic Neon Theme */
+:root {
+  --bg-primary: #07070a;
+  --bg-secondary: #0d0d14;
+  --bg-tertiary: #13131f;
+  --bg-card: rgba(255, 255, 255, 0.03);
+  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  --border-color: rgba(255, 255, 255, 0.08);
+  
+  --accent-cyan: #00f0ff;
+  --accent-purple: #8b5cf6;
+  --accent-rose: #f43f5e;
+  
+  --text-primary: #f3f4f6;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  
+  --shadow-glow: 0 0 20px rgba(0, 240, 255, 0.15);
+  --shadow-glow-purple: 0 0 20px rgba(139, 92, 246, 0.15);
+  
+  --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Glassmorphism & Cards */
+.glass-card {
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color) !important;
+  border-radius: 16px !important;
+  transition: var(--transition-smooth);
+}
+
+.glass-card:hover {
+  background: var(--bg-card-hover) !important;
+  border-color: rgba(0, 240, 255, 0.25) !important;
+  box-shadow: var(--shadow-glow);
+}
+
+/* Glow Typography */
+.text-glow {
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+}
+.text-glow-purple {
+  text-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+}
+
+/* Gradient text */
+.text-gradient {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Bootstrap Button Overrides */
+.btn-info {
+  background: linear-gradient(135deg, var(--accent-cyan), #00d0e6) !important;
+  border: none !important;
+  color: #07070a !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  padding: 8px 20px !important;
+  box-shadow: 0 4px 12px rgba(0, 240, 255, 0.25) !important;
+  transition: var(--transition-smooth) !important;
+}
+
+.btn-info:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 240, 255, 0.4) !important;
+  filter: brightness(1.1);
+}
+
+.btn-outline-info {
+  border: 1.5px solid var(--accent-cyan) !important;
+  background: transparent !important;
+  color: var(--accent-cyan) !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  padding: 8px 20px !important;
+  transition: var(--transition-smooth) !important;
+}
+
+.btn-outline-info:hover {
+  background: rgba(0, 240, 255, 0.1) !important;
+  color: #fff !important;
+  box-shadow: var(--shadow-glow);
+  transform: translateY(-2px);
+}
+
+.btn-outline-light {
+  border: 1.5px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 8px !important;
+  transition: var(--transition-smooth) !important;
+}
+
+.btn-outline-light:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: #fff !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-purple), #7c3aed) !important;
+  border: none !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25) !important;
+  transition: var(--transition-smooth) !important;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4) !important;
+}
+
+/* Custom form styles */
+.form-control, .form-select {
+  background-color: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  border-radius: 8px !important;
+  padding: 10px 14px !important;
+  transition: var(--transition-smooth) !important;
+}
+
+.form-control:focus, .form-select:focus {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15) !important;
+  color: var(--text-primary) !important;
+}
+
+.form-label {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+  margin-bottom: 6px !important;
+}
+
+/* Custom badges */
+.badge.bg-dark {
+  background-color: var(--bg-tertiary) !important;
+  border: 1px solid var(--border-color);
+  color: var(--accent-cyan) !important;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Utility Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease forwards;
+}
+
+/* Custom select options for multi-select */
+select[multiple] option {
+  padding: 8px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+select[multiple] option:checked {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(139, 92, 246, 0.2)) !important;
+  color: var(--accent-cyan);
+}

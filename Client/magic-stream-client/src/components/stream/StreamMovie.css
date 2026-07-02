@@ -1,3 +1,9 @@
-.react-player-container{
-    height: 90vh;
+/* Custom Cinema CSS classes */
+.hover-white:hover {
+    color: #fff !important;
+}
+
+.select-tier-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.03);
 }

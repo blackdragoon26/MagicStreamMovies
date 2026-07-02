@@ -1,19 +1,107 @@
-.movie-card {
-    transition: transform 0.2s;
+.movie-card-wrapper {
+    position: relative;
+    border-radius: 16px;
+    background: var(--bg-card);
+    transition: var(--transition-smooth);
+}
 
+.movie-poster-container {
+    position: relative;
+    height: 360px;
+    width: 100%;
+    overflow: hidden;
+    background-color: #0b0b12;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
 }
-.movie-card:hover {
-    transform: translateY(-8px) scale(1.03);
-    z-index: 2;
+
+.movie-poster-img {
+    object-fit: cover;
+    height: 100%;
+    width: 100%;
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.play-icon-overlay {
+
+.movie-card-wrapper:hover .movie-poster-img {
+    transform: scale(1.08);
+}
+
+.movie-poster-overlay {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 3rem;
-    color: #fff;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    transition: opacity 0.2s;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to top, rgba(7, 7, 10, 0.95) 0%, rgba(7, 7, 10, 0.2) 60%, rgba(7, 7, 10, 0) 100%);
+    opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.3s ease;
+}
 
+.movie-card-wrapper:hover .movie-poster-overlay {
+    opacity: 1;
+}
+
+.play-btn-glow {
+    font-size: 3.5rem;
+    color: var(--accent-cyan);
+    filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.8));
+    transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.movie-card-wrapper:hover .play-btn-glow {
+    transform: scale(1.1);
+}
+
+.movie-title-text {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 1.15rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 100%;
+}
+
+.movie-meta-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.movie-imdb-tag {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.genre-pill-item {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 3px 8px;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+.rating-pill-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
