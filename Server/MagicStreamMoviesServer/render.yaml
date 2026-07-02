@@ -4,7 +4,7 @@
 
 services:
   - type: web
-    name: slix-backend
+    name: magicstreammovies-backend
     runtime: go
     plan: free
     buildCommand: go build -o MagicStreamMoviesServer .
@@ -20,10 +20,6 @@ services:
         length: 32
       - key: DATABASE_NAME
         value: slix_production
-      - key: ALLOWED_ORIGINS
-        value: https://your-frontend-domain.vercel.app
-      - key: COOKIE_DOMAIN
-        value: https://slix-backend.onrender.com
       - key: RECOMMENDED_MOVIE_LIMIT
         value: "5"
       - key: GOOGLE_CLIENT_ID
@@ -34,8 +30,3 @@ services:
         sync: false
       - key: AZURE_OPENAI_DEPLOYMENT_NAME
         sync: false
-
-databases:
-  - name: slix-mongodb
-    databaseName: slix_production
-    user: slix_user
