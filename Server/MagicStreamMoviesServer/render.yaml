@@ -1,0 +1,41 @@
+# ============================================
+# RENDER DEPLOYMENT CONFIGURATION
+# ============================================
+
+services:
+  - type: web
+    name: slix-backend
+    runtime: go
+    plan: free
+    buildCommand: go build -o MagicStreamMoviesServer .
+    startCommand: ./MagicStreamMoviesServer
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: SECRET_KEY
+        generateValue: true
+        length: 32
+      - key: SECRET_REFRESH_KEY
+        generateValue: true
+        length: 32
+      - key: DATABASE_NAME
+        value: slix_production
+      - key: ALLOWED_ORIGINS
+        value: https://your-frontend-domain.vercel.app
+      - key: COOKIE_DOMAIN
+        value: https://slix-backend.onrender.com
+      - key: RECOMMENDED_MOVIE_LIMIT
+        value: "5"
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: AZURE_OPENAI_API_KEY
+        sync: false
+      - key: AZURE_OPENAI_BASE_URL
+        sync: false
+      - key: AZURE_OPENAI_DEPLOYMENT_NAME
+        sync: false
+
+databases:
+  - name: slix-mongodb
+    databaseName: slix_production
+    user: slix_user
